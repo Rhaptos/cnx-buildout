@@ -1,0 +1,68 @@
+#!/bin/bash -e
+
+backup_server=$1     # backups.cnx.org
+backup_directory=$2  # /mnt/backups/backups
+backup_date=$3       # latest or date e.g. 2010_Apr_01
+database_name=$4     # rhaptos_dev_db
+
+
+dba=rhaptos_dba
+# assumption: the sym-links for the psql executables are in the buildout bin directory
+# assumption: running this script from the buildout root directory
+# assumption: ssh-add has been run beforehand (or using this script will be chinese water torture)
+
+# postgresql server must be running
+
+if ( bin/pg_ctl -D parts/postgresql/var/data/ status | grep -q 'no server running' ) ; then
+    echo 'server is not running'
+    exit 255
+fi
+
+# load the schema for the files
+
+echo
+echo "load the schema for the files"
+echo
+
+ssh ${backup_server} cat ${backup_directory}/postgres/repository_files.sql |  bin/psql -U ${dba} ${database_name} -f -
+
+# create a list of incremental backups for the files
+
+if [ ${backup_date} = 'latest' ] # EPIC FAIL
+then
+    echo "we are in the then."
+    FILESINCR=$(ssh ${backup_server}  "find ${backup_directory}/postgres -maxdepth 1 -name repository-\*-files-\*" | sort -k1.30nr )
+else
+    echo "we are not in the then."
+    FILESINCR=$(ssh ${backup_server}  "find ${backup_directory}/postgres -maxdepth 1 -name repository-\*-files-\* \! -newer ${backup_directory}/postgres/repository-${backup_date}-files-*" | sort -k1.30nr )
+fi 
+
+# restore the incremental backups for the files, one at a time
+
+echo
+echo "restore the incremental backups for the files, one at a time"
+echo
+
+for FILE in $FILESINCR
+do
+    basename $FILE
+    ssh ${backup_server} cat $FILE |  bin/psql -U ${dba} ${database_name} -c 'COPY files from stdin with binary'
+done
+
+# restore the rest of the DB
+
+echo
+echo "restore the rest of the database"
+echo
+
+ssh ${backup_server} zcat ${backup_directory}/postgres/repository-${backup_date}.sql.gz | bin/psql -U ${dba} ${database_name} -f -
+
+
+echo
+echo "load the ZODB"
+echo
+
+# load the ZODB
+
+scp ${backup_server}:${backup_directory}/zope/Data.fs-${backup_date} var/filestorage/Data.fs
+scp ${backup_server}:${backup_directory}/zope/Data.fs.index-${backup_date} var/filestorage/Data.fs.index

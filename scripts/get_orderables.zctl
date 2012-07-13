@@ -1,0 +1,5 @@
+col_folders=app.plone.content.objectValues(['Version Folder'])
+
+for cf in col_folders:
+    for c in cf.objectValues(['Collection']):
+        print "%s/%s %s" % (c.objectId, c.version, c.orderable)

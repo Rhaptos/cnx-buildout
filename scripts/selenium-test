@@ -1,0 +1,39 @@
+#!/bin/bash
+
+PORT=$1
+SHARED_SELENIUM_PORT=$2
+SHARED_DISPLAY=$3
+
+ROOT=`dirname "$0"`
+ROOT=`cd "$ROOT/.."; pwd` # Use the base buildout dir
+
+# Usage documentation
+usage() {
+  cmd=`basename $0`
+  echo \
+"Usage:
+  $cmd [port] [seleniumrc-port] [display]
+
+Runs the selenium tests (used by buildbot and depends on sections defined in devel.cfg)
+
+Valid arguments:
+  [port]            The port the webserver is running on (for example, 8080)
+  [seleniumrc-port] The port SeleniumRC should start up on
+  [display]         The virtual display that should be started up for the selenium browser
+"
+  exit 1
+}
+
+BIN=$ROOT/bin
+
+echo "Starting up Xvfb, seleniumrc-daemon, instance, db, and zeo server for selenium web browser"
+$BIN/buildout -c devel.cfg install test-selenium-setup test-selenium
+sleep 10
+$BIN/test-selenium
+RET=$?
+
+echo "Stopping servers"
+$BIN/buildout -c devel.cfg install test-selenium-teardown
+
+
+exit $RET

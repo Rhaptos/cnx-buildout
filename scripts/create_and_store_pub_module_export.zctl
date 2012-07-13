@@ -1,0 +1,126 @@
+import sys
+import transaction
+import subprocess
+import tempfile
+import os
+import shutil
+
+from Products.CMFCore.utils import getToolByName
+from Products.CNXMLTransforms.helpers import doTransform
+from Products.RhaptosSite.utils import kill_other_threads_and_exit
+
+from AccessControl.SecurityManagement import newSecurityManager
+from Products.CMFCore.tests.base.security import AnonymousUser, OmnipotentUser
+user = OmnipotentUser().__of__(app)
+newSecurityManager(None, user)
+
+from Testing.makerequest import makerequest
+app=makerequest(app)
+app.REQUEST.set('PARENTS',[app])
+
+
+if len(sys.argv) < 2:
+    print "The script requires one parameter for the request key."
+    sys.exit(0xDEADBEEF)
+
+key = sys.argv[1]
+
+portal = app.objectValues(['Plone Site','CMF Site'])[0]
+qtool = getToolByName(portal, "queue_tool") # app.plone.queue_tool
+ptool = getToolByName(portal,'rhaptos_print')
+
+if len(sys.argv) == 3:
+    host = sys.argv[2]
+    if host.find('://') != -1:
+        host = host[(host.find('://')+3):]
+else:
+    import socket
+    host = 'http/'+socket.getfqdn()+':8080'
+
+app.REQUEST.traverse('/VirtualHostBase/http/%s/%s/VirtualHostRoot/' % (host,portal.id))
+
+# expecting something like: dictRequest = { "id":"col10208", "version":"1.5" }
+dictRequest = qtool.getRequest(key)
+if dictRequest is not None:
+    qtool.start(key)
+
+    try:
+        # get ModuleView object
+        id = dictRequest["id"]
+        version = dictRequest["version"]
+        project_short_name = portal.Title()
+        mvObj = portal.content[id][version]
+
+        # create odule export zip
+        bytesExportZip = doTransform(mvObj, "folder_to_zip", mvObj)[0]
+
+        strExportZipFileName  = "%s_%s.zip"         % (id,version)
+        strEpubFileName       = "%s_%s.epub"        % (id,version)
+        strOfflineZipFileName = "%s_%s_offline.zip" % (id,version)
+
+        # create the module epub and offline zip
+        if bytesExportZip is not None and len(bytesExportZip) > 0:
+            tmpdir = tempfile.mkdtemp()
+            print "creating temp directory: " + str(tmpdir)
+            file = open("%s/%s" % (tmpdir,strExportZipFileName), 'w')
+            file.write(bytesExportZip)
+            file.close()
+            print "writing zip to temp directory: " + strExportZipFileName
+            epubdir = ptool.getEpubDir()
+
+            # Send whether this is a rhaptos site or a cnx site
+            
+            # launching bash script to build the epub file plus the offline zip
+            script_location = 'SCRIPTSDIR' in os.environ and os.environ['SCRIPTSDIR'] or '.'
+            rc = subprocess.call(['%s/content2epub.bash' % script_location, project_short_name, id, version, tmpdir, strExportZipFileName, strOfflineZipFileName, strEpubFileName, epubdir])
+
+        # we may have been gone a long time - update the current transaction
+        app._p_jar.sync()
+        
+        # store module export zip in RhaptosPrint
+        if bytesExportZip is not None and len(bytesExportZip) > 0:
+            ptool.setFile(id, version, 'zip', bytesExportZip)
+        else:
+            print "Failed to create the module export zip"
+
+        # store the collection offline zip in the PrintTool
+        strFileName = "%s/%s_%s/%s" % (tmpdir,id,version,strOfflineZipFileName)
+        if os.path.isfile(strFileName):
+            file = open(strFileName, 'r')
+            bytesOfflineZip = file.read()
+            file.close()
+            if bytesOfflineZip is not None and len(bytesOfflineZip) > 0:
+                ptool.setFile(id, version, 'offline.zip', bytesOfflineZip)
+            else:
+                print "file %s exists but is empty" % strFileName
+        else:
+            print "Can not find file %s" % strFileName
+
+        # store the collection epub (zip) file inn the PrintTool
+        strFileName = "%s/%s" % (tmpdir,strEpubFileName)
+        if os.path.isfile(strFileName):
+            file = open(strFileName, 'r')
+            bytesEpub = file.read()
+            file.close()
+            if bytesEpub is not None and len(bytesEpub) > 0:
+                ptool.setFile(id, version, 'epub', bytesEpub)
+            else:
+                print "file %s exists but is empty" % strFileName
+        else:
+            print "Can not find file %s" % strFileName
+
+        if os.path.isdir(tmpdir):
+            shutil.rmtree(tmpdir)
+
+        transaction.commit()
+    except Exception, e:
+        print "failure:", e
+        pass
+
+    qtool.stop(key)
+    print "Creation of a module export zip, epub and offline zip is now complete."
+
+    kill_other_threads_and_exit()
+else:
+    print "Could not find the request from the input request key '%s'." % key
+    sys.exit(0xDEADBEEF)

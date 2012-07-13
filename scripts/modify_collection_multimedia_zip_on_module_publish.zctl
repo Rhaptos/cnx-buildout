@@ -1,0 +1,51 @@
+import sys
+import transaction
+
+from Products.CMFCore.utils import getToolByName
+
+# make a fake REQUEST
+from Testing.makerequest import makerequest
+app=makerequest(app)
+app.REQUEST.set('PARENTS',[app])
+
+if len(sys.argv) < 2:
+    print "The script requires one parameter for the request key."
+    sys.exit(0xDEADBEEF)
+
+key = sys.argv[1]
+
+portal = app.objectValues(['Plone Site','CMF Site'])[0]
+if len(sys.argv) == 3:
+    host = sys.argv[2]
+    if host.find('://') != -1:
+        host = host[(host.find('://')+3):]
+else:
+    import socket
+    host = socket.getfqdn()+':8080'
+
+app.REQUEST.traverse('/VirtualHostBase/http/%s/%s/VirtualHostRoot/' % (host,portal.id))
+
+qtool = getToolByName(portal, "queue_tool")
+ptool = getToolByName(portal,'rhaptos_print')
+dictRequest = qtool.getRequest(key)
+# expecting something like: 
+#    dictRequest = { "collection_id":"col10962", "collection_version":"1.1", "module_id":"m20289", "module_version":"1.3"}
+if dictRequest is not None:
+    transaction.commit(); qtool.start(key); transaction.commit()
+    try:
+        collectionId = dictRequest['collection_id']
+        collectionVersion = dictRequest['collection_version']
+        collection = portal.content.getRhaptosObject(collectionId, version=collectionVersion)
+
+        moduleId = dictRequest['module_id']
+        moduleVersion = dictRequest['module_version']
+        module = portal.content.getRhaptosObject(moduleId, version=moduleVersion)
+
+        bytes = collection.update_multimediazip(module)
+    except:
+        pass
+    transaction.commit(); qtool.stop(key); transaction.commit()
+    print "Modifying a collection multimedia zip is now complete."
+else:
+    print "Could not find the request from the input request key."
+    sys.exit(0xDEADBEEF)

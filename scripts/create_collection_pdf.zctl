@@ -1,0 +1,121 @@
+import sys
+import transaction
+import tempfile
+import shutil
+import os
+import subprocess
+
+from Products.CMFCore.utils import getToolByName
+from Products.RhaptosSite.utils import kill_other_threads_and_exit
+
+# make a fake REQUEST
+from Testing.makerequest import makerequest
+app=makerequest(app)
+app.REQUEST.set('PARENTS',[app])
+
+if len(sys.argv) < 2:
+    print "The script requires one parameter for the request key."
+    sys.exit(0xDEADBEEF)
+
+key = sys.argv[1]
+
+portal = app.objectValues(['Plone Site','CMF Site'])[0]
+
+if len(sys.argv) == 3:
+    host = sys.argv[2]
+    if host.find('://') != -1:
+        host = host[(host.find('://')+3):]
+else:
+    import socket
+    host = socket.getfqdn()+':8080'
+
+app.REQUEST.traverse('/VirtualHostBase/http/%s/%s/VirtualHostRoot/' % (host,portal.id))
+
+qtool = getToolByName(portal, "queue_tool")
+ptool = getToolByName(portal,'rhaptos_print')
+dictRequest = qtool.getRequest(key)
+# expecting something like: dictRequest = { "id":"col10208", "version":"1.5", "makefile":"/opt/instances/cnx/Products/RhaptosPrint/printing/course_print.mak", "host":"http://stevens.cnx.rice.edu:8080"}
+if dictRequest is not None:
+    qtool.start(key)
+    transaction.commit()
+
+    try:
+        collectionId = dictRequest['id']
+        collectionVersion = dictRequest['version']
+        makefile = dictRequest['makefile']
+        printdir = os.path.dirname(makefile)
+        host = dictRequest['host']
+        project_name = dictRequest['project_name']
+        project_short_name = dictRequest['project_short_name']
+
+        tmpdir = tempfile.mkdtemp()
+        print "creating temp directory: " + str(tmpdir)
+        #shutil.copy(makefile, os.path.join(tmpdir,'generate-pdf.sh'))
+
+        env = os.environ
+        # override the makefile default values via environment variables and '-e' switch
+        env['PRINT_DIR'] = printdir
+        env['HOST'] = host
+        env['COLLECTION_ID'] = collectionId
+        env['COLLECTION_VERSION'] = collectionVersion
+        env['PROJECT_NAME'] = project_name
+        env['PROJECT_SHORT_NAME'] = project_short_name
+        env['EPUB_DIR'] = ptool.getEpubDir()
+
+        script_location = 'SCRIPTSDIR' in env and env['SCRIPTSDIR'] or '.'
+        ##rc = subprocess.call(['make', '-e', collectionId+'.zip'], cwd=tmpdir, env=env)
+        rc = subprocess.call(['sh', '%s/collection2pdf.sh' % script_location, collectionId+'.pdf'], cwd=tmpdir, env=env)
+        print "return code: " + str(rc)
+      
+        # Been gone a while, update transaction
+        app._p_jar.sync()
+
+        foundPDF = True
+        try:
+            # read the PDF (if it doesn't exist, fail)
+            f = open(os.path.join(tmpdir, collectionId+'.pdf'))
+            pdf = f.read()
+            f.close()
+        except IOError:
+            print "Failed to create the collection PDF."
+            foundPDF = False
+
+        foundZIP = True
+        try:
+            # read the ZIP (if it doesn't exist, fail)
+            f = open(os.path.join(tmpdir, collectionId+'.zip'))
+            bytes = f.read()
+            f.close()
+        except IOError:
+            print "Failed to create the collection LaTeX zip."
+            foundZIP = False
+
+        goodPDF = foundPDF and ( pdf.endswith("%%EOF\n") or pdf.endswith("%%EOF\n\n") )
+        goodZIP = foundZIP and len(bytes) > 0
+
+        collection = portal.content.getRhaptosObject(collectionId, version=collectionVersion)
+        if goodPDF:
+            collection.setPrintedFile(pdf)
+            collection.setProcessStatus('succeeded')
+            print "Storing the collection pdf with the PrintTool is now complete."
+            if goodZIP:
+                ptool.setFile(collectionId, collectionVersion, 'latex.zip', bytes)
+                print "Storing the collection latex with the PrintTool is now complete."
+        else:
+            collection.setProcessStatus('failed')
+
+        if os.path.isdir(tmpdir):
+            shutil.rmtree(tmpdir)
+
+        transaction.commit()
+    except Exception, e:
+        print "failure:", e
+        pass
+
+    qtool.stop(key)
+    print "Creation of a collection pdf and latex zip is now complete."
+
+    kill_other_threads_and_exit()
+else:
+    print "Could not find the request from the input request key '%s'." % key
+    sys.exit(0xDEADBEEF)

@@ -1,0 +1,61 @@
+import sys
+import transaction
+from StringIO import StringIO
+
+from Products.CMFCore.utils import getToolByName
+from Products.RhaptosSite.utils import kill_other_threads_and_exit
+
+# make a fake REQUEST
+from Testing.makerequest import makerequest
+app=makerequest(app)
+app.REQUEST.set('PARENTS',[app])
+
+if len(sys.argv) < 2:
+    print "The script requires one parameter for the request key."
+    sys.exit(0xDEADBEEF)
+
+key = sys.argv[1]
+
+portal = app.objectValues(['Plone Site','CMF Site'])[0]
+
+if len(sys.argv) == 3:
+    host = sys.argv[2]
+    if host.find('://') != -1:
+        host = host[(host.find('://')+3):]
+else:
+    import socket
+    host = socket.getfqdn()+':8080'
+
+app.REQUEST.traverse('/VirtualHostBase/http/%s/%s/VirtualHostRoot/' % (host,portal.id))
+
+qtool = getToolByName(portal, "queue_tool")
+ptool = getToolByName(portal,'rhaptos_print')
+dictRequest = qtool.getRequest(key)
+# expecting something like: dictRequest = { "id":"col10208", "version":"1.5", "repository":"http://cnx.org/content"}
+if dictRequest is not None:
+    qtool.start(key)
+
+    try:
+        repository = dictRequest['repository']
+        collectionId = dictRequest['id']
+        collectionVersion = dictRequest['version']
+        collection = portal.content.getRhaptosObject(collectionId, version=collectionVersion)
+        source_create = collection.restrictedTraverse('source_create')
+        source_create.repository = repository
+        collectionXml = source_create()
+        if type(collectionXml) is unicode:
+            collectionXml = collectionXml.encode('utf-8')
+        if collectionXml is not None and len(collectionXml) > 0:
+            ptool.setFile(collectionId, collectionVersion, 'xml', collectionXml)
+        transaction.commit()
+    except Exception, e:
+        print "failure:", e
+        pass
+
+    qtool.stop(key)
+    print "Creation of a collection xml and collxml zip is now complete."
+
+    kill_other_threads_and_exit()
+else:
+    print "Could not find the request from the input request key '%s'." % key
+    sys.exit(0xDEADBEEF)

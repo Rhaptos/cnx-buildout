@@ -1,0 +1,22 @@
+from transaction import commit
+
+def is_latest_or_locked(fname):
+    (cid,rest) = fname.split('-')
+    vparts = rest.split('.')
+    ver = '.'.join(vparts[0:2])
+    try:
+        lver = app.plone.content[cid].latest.version
+        status = app.plone.content[cid][ver].getProcessStatus()
+        return ver == lver or status == 'locked'
+    except KeyError:
+        return False
+
+to_del = []
+for fid in app.plone.pdfs.objectIds():
+    if fid.startswith('m') or not(is_latest_or_locked(fid)):
+        to_del.append(fid)
+        
+#print "would delete %s of %s" % (len(to_del), len(app.plone.pdfs.objectIds()))
+
+app.plone.pdfs.manage_delObjects(to_del)
+commit()

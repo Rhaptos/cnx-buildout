@@ -1,0 +1,45 @@
+import sys
+import transaction
+from Products.CMFCore.utils import getToolByName
+
+#portal = getToolByName(portal, 'portal_url').getPortalObject()
+portal = app.objectValues(['Plone Site','CMF Site'])[0]
+
+mtool = getToolByName(portal, 'portal_membership')
+mdtool = getToolByName(portal, 'portal_memberdata')
+user_folder = getToolByName(portal, 'acl_users')
+
+preserve_email_doman = ( sys.argv and len(sys.argv) >= 2 and sys.argv[1] or None )
+
+commit_interval = 10
+i = 0
+member_ids = mdtool.objectIds()
+
+for member_id in member_ids:
+    user_member_data = mtool.getMemberById(member_id)
+    if user_member_data:
+        try:
+            current_email = user_member_data.getProperty('email')
+            change_email = ( preserve_email_doman is None or current_email is None or not current_email.endswith(preserve_email_doman) )
+            if change_email:
+                new_email = "%s@example.com" % member_id
+                user_member_data.setMemberProperties({'email':new_email})
+            else:
+                print "%d. modifying user account: '%s' unchanged contact: %s" % (i,member_id,current_email)
+
+            new_password = 'password'
+            user_folder.userSetPassword(member_id, new_password)
+
+            print "%d. modifying user account: '%s'" % (i,member_id)
+        except:
+            print "%d. failed in modifying user account: '%s'" % (i,member_id)
+    else:
+        print "%d. not modifying user account: '%s'" % (i,member_id)
+
+    i += 1
+    if i % commit_interval == 0:
+        print '... commiting'
+        transaction.commit()
+
+transaction.commit()
+

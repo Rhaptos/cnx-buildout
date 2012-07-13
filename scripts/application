@@ -1,0 +1,62 @@
+#!/bin/bash
+
+#echo "PHIL: Custom setting JAVA_HOME since reedstrm doesn't have it set"
+#export JAVA_HOME=/usr/lib/jvm/java-6-openjdk/
+
+CMD=$1
+
+ROOT=`dirname "$0"`
+ROOT=`cd "$ROOT/.."; pwd` # Use the base buildout dir
+
+# Usage documentation
+usage() {
+  cmd=`basename $0`
+  echo \
+"Usage:
+  $cmd [command]
+
+Starts, stops, checks, or restarts the embedded pgsql server (if it exists),
+zeo, and zope.
+
+Valid commands:
+  start
+  stop
+  status
+  restart
+  fg (starts up all servers and starts the zope instance in the foreground)
+"
+  exit 1
+}
+
+BIN=$ROOT/bin
+DATADIR="parts/postgresql/"
+#DATADIR="/data/postgresql/"
+PGCTL="$BIN/pg_ctl"
+PGSQL="$PGCTL -D $DATADIR/var/data/ -l var/log/pgsql.log"
+ZEO="$BIN/zeoserver"
+ZOPE="$BIN/instance"
+
+# Sanity check that either "start", "stop", or "restart" was specified.
+if [ "." = ".$CMD" ]; then
+  usage
+elif [ "start" = $CMD ]; then
+  if [ -x $PGCTL ]; then $PGSQL start; fi 
+  $ZEO start && $ZOPE start
+elif [ "stop" = $CMD ]; then
+  $ZOPE stop && $ZEO stop
+  if [ -x $PGCTL ]; then $PGSQL stop; fi
+elif [ "status" = $CMD ]; then
+  $ZOPE status && $ZEO status
+  if [ -x $PGCTL ]; then $PGSQL status; fi
+elif [ "restart" = $CMD ]; then
+  $ZOPE stop && $ZEO stop
+  if [ -x $PGCTL ]; then $PGSQL restart; fi
+  $ZEO start && $ZOPE start 
+elif [ "fg" = $CMD ]; then
+  if [ -x $PGCTL ]; then $PGSQL start; fi 
+  $ZEO start && $ZOPE fg
+else
+  usage
+fi
+
+

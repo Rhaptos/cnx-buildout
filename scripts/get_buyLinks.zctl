@@ -1,0 +1,9 @@
+col_folders=app.plone.content.objectValues(['Version Folder'])
+
+for cf in col_folders:
+    if hasattr(cf.aq_explicit,'buyLink'):
+        print "%s/ %s" % (cf.id, cf.buyLink)
+
+    for c in cf.objectValues(['Collection']):
+        if hasattr(c.aq_explicit,'buyLink'):
+            print "%s/%s %s" % (c.objectId, c.version, c.buyLink)

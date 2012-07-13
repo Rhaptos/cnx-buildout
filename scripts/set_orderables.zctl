@@ -1,0 +1,19 @@
+import sys
+from transaction import commit
+
+con=app.plone.content
+for i,l in enumerate(sys.stdin):
+    cv,b = l.split()
+    ord = bool(eval(b))
+    cid,v = cv.split('/')
+    col = con[cid][v]
+
+    if col.getOrderable != ord:
+        col.orderable = ord
+
+    if not ((i+1)%100):
+        commit()
+        print i+1
+
+commit()
+print i+1

@@ -1,0 +1,13 @@
+import transaction
+
+cols = app.plone.content.objectValues(['Version Folder'])
+num_cols = len(cols)
+print "%s collections" % num_cols
+for i,cf in enumerate(cols):
+    for c in cf.objectValues(['Collection']):
+        if c.orderable: c.setOrderable(False)
+    if not ((i+1)%100):
+        transaction.commit()
+        print "%.2f%% (%i)" % (((i+1)*100.0)/num_cols,i+1)
+transaction.commit()
+print "%.2f%% (%i)" % (((i+1)*100.0)/num_cols,i+1)

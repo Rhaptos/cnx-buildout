@@ -1,0 +1,76 @@
+import sys
+import shlex
+from Products.CMFCore.utils import getToolByName
+# addRhaptosUser.zctl org johndoe   johndoe   John Doe   john@doe.com
+# addRhaptosUser.zctl manager  janesmith janesmith Jane Smith jane@smith.com
+# addRhaptosUser.zctl member  janesmith janesmith Jane Smith jane@smith.com
+# or cat file_of_users | bin/instance run scripts/addRhaptosUser.zctl
+
+def add_a_user(type,username,password,firstname,surname,email):
+
+    if type == 'org':
+        groups = ('Member','Endorser','Publisher')
+        newprops = { 'fullname':firstname, 'shortname':surname, 'email':email, 'account_type':'org', 'status':'Approved' }
+    elif type == 'manager':
+        groups = ('Member','Manager','Publisher')
+        fullname = "%s %s" % (firstname,surname)
+        newprops = { 'firstname':firstname, 'surname':surname, 'email':email, 'fullname':fullname, 'status':'Approved' }
+    else:
+        groups = ('Member','Publisher')
+        fullname = "%s %s" % (firstname,surname)
+        newprops = { 'firstname':firstname, 'surname':surname, 'email':email, 'fullname':fullname, 'status':'Approved' }
+
+    if username in member_ids:
+        # user exists so hammer password ...
+        user_folder.userSetPassword(username, password)
+    else:
+        # add a new Rhaptos user ...
+        mtool.addMember(username,password,groups,None)
+        print "Created %s" % username
+
+    # populate the required fields ...
+    memberdata = mtool.getMemberById(username)
+    memberdata.setMemberProperties(newprops)
+
+    print "Updated properties for %s" % username
+
+portals = app.objectIds(['Plone Site','CMF Site'])
+
+if not portals:
+    print "No portal found!"
+    sys.exit(-1)
+else:
+    portalname = portals[0]
+
+# make a fake REQUEST
+from Testing.makerequest import makerequest
+app=makerequest(app)
+app.REQUEST.set('PARENTS',[app])
+app.REQUEST.traverse('/VirtualHostBase/http/localhost/%s/VirtualHostRoot/'% (portalname))
+
+portal = app[portalname]
+mtool = getToolByName(portal, "portal_membership")
+mdtool = getToolByName(portal, 'portal_memberdata')
+user_folder = getToolByName(portal, 'acl_users')
+member_ids = mdtool.objectIds()
+
+if len(sys.argv) == 7:
+    type       = sys.argv[1]
+    username   = sys.argv[2]
+    password   = sys.argv[3]
+    firstname  = sys.argv[4]
+    surname    = sys.argv[5]
+    email      = sys.argv[6]
+
+    add_a_user(type,username,password,firstname,surname,email)
+    
+for data in sys.stdin:
+    if data !='': 
+        (type,username,password,firstname,surname,email) = shlex.split(data)
+        add_a_user(type,username,password,firstname,surname,email)
+
+# make it so ...
+import transaction; transaction.commit()
+
+from Products.RhaptosSite.utils import kill_other_threads_and_exit
+kill_other_threads_and_exit()

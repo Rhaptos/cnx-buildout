@@ -1,0 +1,17 @@
+--- GNUmakefile.in.orig	2010-04-08 15:00:23.000000000 -0500
++++ GNUmakefile.in	2010-04-08 15:05:23.000000000 -0500
+@@ -12,12 +12,14 @@
+ 	$(MAKE) -C doc all
+ 	$(MAKE) -C src all
+ 	$(MAKE) -C config all
++	$(MAKE) -C contrib/tsearch2 all
+ 	@echo "All of PostgreSQL successfully made. Ready to install."
+ 
+ install:
+ 	$(MAKE) -C doc $@
+ 	$(MAKE) -C src $@
+ 	$(MAKE) -C config $@
++	$(MAKE) -C contrib/tsearch2 $@
+ 	@echo "PostgreSQL installation complete."
+ 
+ installdirs uninstall:

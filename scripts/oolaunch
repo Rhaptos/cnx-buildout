@@ -1,0 +1,12 @@
+#!/bin/sh
+# Should be run as user www-data, perhaps as so:
+# sudo su www-data ./oolaunch
+cd /tmp
+echo "localhost" >xvfb.auth.$$
+Xvfb -auth /tmp/xvfb.auth.$$ :1 -screen 0 1024x768x24 &
+
+OOWRITER=$(which oowriter)
+OOWRITER=${OOWRITER:-$(which lowriter)}
+echo $OOWRITER
+
+$OOWRITER -headless "-accept=socket,host=localhost,port=2002;urp;" -display :1.0 &

@@ -1,0 +1,17 @@
+cobs = app.plone.content.objectValues('Version Folder')
+mobs = app.plone.content.objectValues('Module Version Folder')
+
+cs = [(c.latest.objectId,c.latest.version) for c in cobs]
+ms = [(m.latest.objectId,m.latest.version) for m in mobs]
+
+colext=['complete.zip', 'epub', 'latex.zip', 'offline.zip', 'pdf', 'xml']
+modext=['epub', 'offline.zip', 'zip']
+
+
+for c in cs:
+    for ext in colext:
+        print '%s-%s.%s' % (c+(ext,))
+
+for m in ms:
+    for ext in modext:
+        print '%s-%s.%s' % (m+(ext,))
