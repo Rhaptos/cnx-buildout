@@ -1,0 +1,11 @@
+# Development #
+###############
+*.pyc
+*.pyo
+*~
+
+# Virtual Environment #
+#######################
+bin
+include
+lib
