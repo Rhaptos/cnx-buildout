@@ -3,6 +3,17 @@
 *.pyc
 *.pyo
 *~
+src
+
+# Buildout #
+############
+eggs
+parts
+develop-eggs
+downloads
+fake-eggs
+.installed.cfg
+.mr.developer.cfg
 
 # Virtual Environment #
 #######################
