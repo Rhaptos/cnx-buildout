@@ -17,3 +17,36 @@ pip install simplejson==1.9.2
 pip install lxml
 bin/buildout 
 
+then:
+
+bin/zeoserver start
+bin/instance fg
+
+Use browser to connect to http://localhost:8080/manage_main
+
+login admin:admin
+
+Use dropdown to add a 'Rhaptos Plone Site'
+
+Assign an id (either'plone' or 'site' usually)
+accept other defaults
+
+in management interface, go to portal_setup.
+Select "Properties" tab (which should be this url: http://localhost:8080/plone/portal_setup/manage_tool)
+
+Select "Products.CNXPloneSite" from dropdown and "Update"
+Select "Import" tab
+Select CNXPloneSite Customization Policy
+Scroll to bottom, click "Import selected steps"
+
+Go back to http://localhost:8080/plone
+
+from the commandline, go to cnx-buildout
+run: scripts/add_users.sh
+This will install user[1234], org[12] and manager1. Each has the same username and password.
+
+Congrats, you have a local devel install of cnx.org codebase.
+
+
+
+
