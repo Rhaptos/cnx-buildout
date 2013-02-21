@@ -7,7 +7,6 @@ configure postgresql to allow 'trust' access for unix doamin socket connections
 
 git clone git@github.com:Rhaptos/cnx-buildout.git cnx-buildout
 cd cnx-buildout
-git checkout gitify
 virtualenv -p /usr/bin/python2.4 .
 . ./bin/activate
 ln devel.cfg buildout.cfg
