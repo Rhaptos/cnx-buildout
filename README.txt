@@ -13,8 +13,9 @@ ln devel.cfg buildout.cfg
 mkdir downloads
 python bootstrap.py 
 pip install simplejson==1.9.2
-pip install lxml
 bin/buildout 
+. bin/libs.sh
+pip install lxml
 
 then:
 
