@@ -1,9 +1,10 @@
 This overly complex buildout is being cleaned up a bit at a time, but
-will probably be end-of-lifed before it's sane. Basic install intructions are:
+will probably be end-of-lifed before it's sane. Basic install instructions are:
 
 Get python2.4 and virtualenv installed on your system
+
 postgresql >= 8.3 (9.1 or 9.2 are fine)
-configure postgresql to allow 'trust' access for unix doamin socket connections
+configure postgresql to allow 'trust' access for unix domain socket connections
 
 git clone git@github.com:Rhaptos/cnx-buildout.git cnx-buildout
 cd cnx-buildout
@@ -16,6 +17,28 @@ pip install simplejson==1.9.2
 bin/buildout 
 . bin/libs.sh
 pip install lxml
+
+
+Detailed install for Ubuntu 12.0.4.2 LTS server:
+
+base install
+configure access to hardy (yes hardy):
+
+echo "deb http://us.archive.ubuntu.com/ubuntu/ hardy main" >/etc/apt/sources.list.d/hardy.list
+apt-get update
+apt-get instll postgresql postresql-contrib
+apt-get install python2.4-dev python-virtualenv make git libjpeg-dev libpng-dev build-essential
+
+git clone git@github.com:Rhaptos/cnx-buildout.git cnx-buildout
+cd cnx-buildout
+virtualenv -p /usr/bin/python2.4 .
+source bin/activate
+mkdir downloads
+python bootstrap.py 
+pip install simplejson==1.9.2
+bin/buildout 
+
+
 
 then:
 
