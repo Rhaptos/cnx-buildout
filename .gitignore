@@ -10,7 +10,7 @@ src
 eggs
 parts
 develop-eggs
-downloads
+downloads/*
 fake-eggs
 .installed.cfg
 .mr.developer.cfg
