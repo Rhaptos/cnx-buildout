@@ -52,10 +52,10 @@ cd $EPUB_CODE_DIR
 CONTENT_ID=$(basename ${EXTRA_DIR})
 
 # Generate 2 epub files 
-bash $EPUB_CODE_DIR/scripts/module2epub.sh $CNX_OR_RHAPTOS $CONTENT_DIR $EPUB_FILE ${CONTENT_ID} $EPUB_CODE_DIR/xsl/dbk2epub.xsl $EPUB_CODE_DIR/static/content.css
+bash $EPUB_CODE_DIR/scripts/module2epub.sh "$CNX_OR_RHAPTOS" $CONTENT_DIR $EPUB_FILE ${CONTENT_ID} $EPUB_CODE_DIR/xsl/dbk2epub.xsl $EPUB_CODE_DIR/static/content.css
 EXIT_STATUS=$EXIT_STATUS || $?
 
-bash $EPUB_CODE_DIR/scripts/module2epub.sh $CNX_OR_RHAPTOS $CONTENT_DIR $EPUB_MOD_FILE ${CONTENT_ID} $EPUB_CODE_DIR/xsl/dbk2html.xsl $EPUB_CODE_DIR/static/offline-zip-overrides.css --skip-dbk-generation
+bash $EPUB_CODE_DIR/scripts/module2epub.sh "$CNX_OR_RHAPTOS" $CONTENT_DIR $EPUB_MOD_FILE ${CONTENT_ID} $EPUB_CODE_DIR/xsl/dbk2html.xsl $EPUB_CODE_DIR/static/offline-zip-overrides.css --skip-dbk-generation
 EXIT_STATUS=$EXIT_STATUS || $?
 
 
