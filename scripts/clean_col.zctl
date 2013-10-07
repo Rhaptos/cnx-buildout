@@ -1,0 +1,37 @@
+from Testing.ZopeTestCase.utils import makerequest
+from AccessControl.SecurityManagement import newSecurityManager
+from Products.CMFCore.tests.base.security import AnonymousUser, OmnipotentUser
+from psycopg import Binary
+
+user = OmnipotentUser().__of__(app)
+newSecurityManager(None, user)
+
+app = makerequest(app)
+app.REQUEST.set('PARENTS',[app])
+app.REQUEST.traverse('/VirtualHostBase/http/cnx.org/plone/VirtualHostRoot/')
+
+
+def del_bad_refs(con):
+    to_del=[]
+    num_del=0
+    for c in con.objectValues(['PublishedContentPointer','SubCollection']):
+        if c.portal_type == 'SubCollection':
+            num_del += del_bad_refs(c)
+        else:
+            if not(c.getContent()):
+                to_del.append(c.id)
+        num_del += len(to_del)
+    if to_del:
+        for id in to_del:
+            con._delObject(id)
+        print to_del
+        to_del = []
+        
+    return num_del
+
+for col in app.plone.content.objectValues('Version Folder'):
+    for rev in col.objectValues('Collection'):
+        print '%s/%s' % (col.id,rev.id) ,
+        print del_bad_refs(rev)
+        
+import transaction; transaction.commit()
