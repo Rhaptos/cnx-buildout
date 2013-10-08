@@ -2,38 +2,44 @@ from Testing.ZopeTestCase.utils import makerequest
 from AccessControl.SecurityManagement import newSecurityManager
 from Products.CMFCore.tests.base.security import AnonymousUser, OmnipotentUser
 from psycopg import Binary
+from lxml import etree
+from transaction import commit
+
 
 user = OmnipotentUser().__of__(app)
 newSecurityManager(None, user)
+def use_user(userid='reedstrm'):
+    user = app.plone.acl_users.getUserById(userid)
+    if not user:
+        user = app.acl_users.getUserById(userid)
+    user = user.__of__(app.plone.acl_users)
+    newSecurityManager(None, user)
+    return userid
+
+use_user()
 
 app = makerequest(app)
 app.REQUEST.set('PARENTS',[app])
 app.REQUEST.traverse('/VirtualHostBase/http/cnx.org/plone/VirtualHostRoot/')
 
 
-for col in app.plone.content.objectValues('Version Folder'):
-    for rev in col.objectValues('Collection'):
-        mod = app.plone.portal_moduledb.sqlGetModule(id=rev.objectId,version=rev.version)
-        if len(mod) == 0:
-            print "New %s/%s:" % (rev.objectId,rev.version) ,
-            try:
-                app.plone.portal_moduledb.insertModuleVersion(rev)
-                print "Metadata succeeded"
-            except:
-                print "failed"
-                continue
+mods=app.devrep.manage_test("select moduleid, version from modules m left join module_files mf on m.module_ident  = mf.module_ident where portal_type = 'Collection'  and filename is null order by m.module_ident")
 
-        modfile = app.plone.portal_moduledb.sqlGetModuleFile(id=rev.objectId,version=rev.version, filename='collection.xml')
-        if len(modfile) == 0:
-            print "New collxml %s/%s:" % (rev.objectId,rev.version) ,
-            try:
-                xml = rev.restrictedTraverse('source_create')()
-                res = app.plone.portal_moduledb.sqlInsertFile(file = Binary(xml))
-                fid = res[0].fileid
-                app.plone.portal_moduledb.sqlInsertModuleFile(moduleid=rev.objectId, version=rev.version, fileid=fid, filename='collection.xml',mimetype='text/xml')
-                print "XML succeeded"
-            except:
-                print "failed"
-                raise
-
-import transaction; transaction.commit()
+nmods = len(mods)
+for i,(modid,ver) in enumerate(mods):
+    print "New collxml %s/%s: " % (modid,ver) ,
+    try:
+        xml = app.plone.content[modid][ver].restrictedTraverse('source_create')()
+        xml = etree.tostring(etree.fromstring(xml))
+        res = app.plone.portal_moduledb.sqlInsertFile(file = Binary(xml))
+        fid = res[0].fileid
+        app.plone.portal_moduledb.sqlInsertModuleFile(moduleid=modid, version=ver, fileid=fid, filename='collection.xml',mimetype='text/xml')
+        print "XML succeeded"
+    except:
+        print "XML failed"
+        pass
+    if i % 10 == 0:
+        print "%s Completed" % i
+        commit()
+        
+commit()
