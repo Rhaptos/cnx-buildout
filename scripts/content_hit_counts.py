@@ -6,6 +6,40 @@ import time
 from DateTime import DateTime
 from mx.DateTime.DateTime import DateTimeFrom
 
+
+# Not used, only here for usage guidance.
+CRON_WEEKLY_STATEMENT = """\
+#!/bin/bash
+# use 'touch' to set a stamp older than the first log you want to process,
+# or this will process all logfiles
+LOGDIR=/var/local/varnish
+
+
+if [ ${LOGDIR}/varnishncsa.log.1 -nt /var/lib/varnish_import_stamp ] ;
+then
+    i=2
+    while [ ${LOGDIR}/varnishncsa.log.$i.gz -nt /var/lib/varnish_import_stamp ]
+    do str="$i,$str" ; i=$((i+1))
+    done
+    tmpfile=$(tempfile -m 640)
+    chgrp www-data $tmpfile
+    eval zcat -f  ${LOGDIR}/varnishncsa.log.{{${str::${#str}-1}}.gz,1} > $tmpfile
+    /opt/instances/buildout/bin/instance run /opt/instances/buildout/scripts/content_hit_counts.py $tmpfile
+    if [ ! $? ]
+        then
+            echo "Log import failed! Data at: " $tmpfile
+        exit 1
+    else
+        rm $tmpfile
+        touch /var/lib/varnish_import_stamp ;
+        if [ ! $? ]  ;
+           then echo "Can't touch timestamp file /var/lib/varnish_import_stamp"
+        fi
+    fi
+fi
+"""
+
+
 # FIXME: don't hardcode this
 MODULE_PATTERN = re.compile('^http://cnx\.org/(?:VirtualHostBase.*VirtualHostRoot/)?content/(m|col)([0-9]+)/[^/]*/$')
 
