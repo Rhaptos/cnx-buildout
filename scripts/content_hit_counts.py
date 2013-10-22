@@ -1,9 +1,11 @@
 #!/usr/bin/env python
+import os
 import sys
 import gzip
 import re
 import transaction
 import time
+import psycopg2
 from DateTime import DateTime
 from mx.DateTime.DateTime import DateTimeFrom
 
@@ -71,6 +73,7 @@ def parse_log(name):
     return counts, start_time, end_time
 
 if __name__ == '__main__':
+    db_connection_string = os.environ['DB_CONNECTION_STRING']
     for fname in sys.argv[1:]:
 
         increment, s_time, e_time = parse_log(fname)
@@ -86,4 +89,21 @@ if __name__ == '__main__':
 
         app.plone.portal_hitcount.incrementCounts(increment, DateTime(s_time), DateTime(e_time))
         transaction.commit()
-        print "Updated logs for %s - %s" % (time.ctime(s_time), time.ctime(e_time))
+        print "Updated logs for %s - %s in the ZODB" % (time.ctime(s_time), time.ctime(e_time))
+
+        # Now, also put the records in SQL.
+        db_connection = psycopg2.connect(db_connection_string)
+        cursor = db_connection.cursor()
+        start = time.ctime(s_time)
+        end = time.ctime(e_time)
+        for moduleid, hits in increment.items():
+            cursor.execute("WITH module_ident AS "
+                           "  (SELECT module_ident "
+                           "   FROM latest_modules "
+                           "   WHERE moduleid = %s) "
+                           "INSERT INTO document_hits "
+                           "  VALUES (module_ident, %s, %s, %s)",
+                           (moduleid, start, end, hits,)
+                           )
+        cursor.close()
+        db_connection.close()
