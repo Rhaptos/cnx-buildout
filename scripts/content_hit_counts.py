@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+import sys
 import gzip
 import re
 import transaction
@@ -43,7 +44,8 @@ fi
 # FIXME: don't hardcode this
 MODULE_PATTERN = re.compile('^http://cnx\.org/(?:VirtualHostBase.*VirtualHostRoot/)?content/(m|col)([0-9]+)/[^/]*/$')
 
-def parseSquidLog(name):
+def parse_log(name):
+    """Parses a varnish gzip'ed log file to capture module hit counts."""
     f = gzip.open(name)
     try:
         f.readline()
@@ -69,11 +71,9 @@ def parseSquidLog(name):
     return counts, start_time, end_time
 
 if __name__ == '__main__':
-    import sys
-
     for fname in sys.argv[1:]:
 
-        increment, s_time, e_time = parseSquidLog(fname)
+        increment, s_time, e_time = parse_log(fname)
 
         # Filter out hits for objects that don't actually exist
         for objectId in increment.keys():
