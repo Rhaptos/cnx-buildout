@@ -66,6 +66,10 @@ if dictRequest is not None:
         # add offline HTML and docbook files to the complete zip and
         # create the epub (zip) file
         if bytesCompleteZip is not None and len(bytesCompleteZip) > 0:
+            # store the collection export zip in the PrintTool
+            ptool.setFile(collectionId, collectionVersion, 'complete.zip', bytesCompleteZip)
+            transaction.commit()
+
             tmpdir = tempfile.mkdtemp()
             print "creating temp directory: " + str(tmpdir)
             file = open("%s/%s" % (tmpdir,strCompleteZipFileName), 'w')
@@ -80,11 +84,6 @@ if dictRequest is not None:
 
         # we may have been gone a long time - update the current transaction
         app._p_jar.sync()
-
-        # store the collection export zip in the PrintTool
-        if bytesCompleteZip is not None and len(bytesCompleteZip) > 0:
-            ptool.setFile(collectionId, collectionVersion, 'complete.zip', bytesCompleteZip)
-            transaction.commit()
 
         # store the collection offline zip in the PrintTool
         strFileName = "%s/%s/%s" % (tmpdir, strOfflineFileLocation,strOfflineZipFileName)
