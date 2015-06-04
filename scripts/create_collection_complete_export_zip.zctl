@@ -67,6 +67,8 @@ if dictRequest is not None:
         # create the epub (zip) file
         if bytesCompleteZip is not None and len(bytesCompleteZip) > 0:
             # store the collection export zip in the PrintTool
+            # About to store - update the current transaction
+            app._p_jar.sync()
             ptool.setFile(collectionId, collectionVersion, 'complete.zip', bytesCompleteZip)
             transaction.commit()
 
