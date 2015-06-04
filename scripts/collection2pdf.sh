@@ -22,25 +22,22 @@ FILESTORE=/var/www/files
 
 
 
-OFFLINENAME=${FILESTORE}/${COLLECTION_ID}-${COLLECTION_VERSION}.offline.zip
+COMPLETENAME=${FILESTORE}/${COLLECTION_ID}-${COLLECTION_VERSION}.complete.zip
 
-if [ -e $OFFLINENAME ]; then
-    echo "Found offline zip in filestore"
-    unzip $OFFLINENAME
+if [ -e $COMPLETENAME ]; then
+    echo "Found complete zip in filestore"
+    unzip $COMPLETENAME
 else
-    echo "Downloading and unzipping the offline zip"
-    wget --timeout=300 -O offline.zip ${HOST}/content/${COLLECTION_ID}/${COLLECTION_VERSION}/offline && unzip offline.zip 
+    echo "Downloading and unzipping the complete zip"
+    wget --timeout=300 -O complete.zip ${HOST}/content/${COLLECTION_ID}/${COLLECTION_VERSION}/complete && unzip complete.zip 
 fi
-mv ${COLLECTION_ID}_${COLLECTION_VERSION}_complete/content/* . && rm -rf ${COLLECTION_ID}_${COLLECTION_VERSION}_complete
+mv ${COLLECTION_ID}_${COLLECTION_VERSION}_complete/* . && rm -rf ${COLLECTION_ID}_${COLLECTION_VERSION}_complete
 
 PRINT_STYLE=$(${XSLTPROC} ${PRINT_STYLE_XSL} collection.xml)
 
 if [ "." != ".${PRINT_STYLE}" ]; then
   echo "Running new-style PDF generation with PRINT_STYLE=${PRINT_STYLE}"
 
-  # The offline zip already has the Docbook files in it, so let's save some time
-  #sh ${EPUB_DIR}/scripts/collectiondbk2pdf.sh . ${PRINT_STYLE}
-  #cp collection.pdf ${COLLECTION_ID}.pdf
 
   DIR=$(pwd)
   cd ${EPUB_DIR}
@@ -60,7 +57,7 @@ else
     wget --timeout=300 -O complete.zip ${HOST}/content/${COLLECTION_ID}/${COLLECTION_VERSION}/complete && unzip complete.zip 
   fi
 
-  mv ${COLLECTION_ID}_${COLLECTION_VERSION}_complete/content/* . && rm -rf ${COLLECTION_ID}_${COLLECTION_VERSION}_complete
+  mv ${COLLECTION_ID}_${COLLECTION_VERSION}_complete/* . && rm -rf ${COLLECTION_ID}_${COLLECTION_VERSION}_complete
   cp ${EPUB_DIR}/../printing/course_print.mak Makefile
   make -e ${COLLECTION_ID}.pdf
 fi
