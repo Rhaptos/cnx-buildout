@@ -48,6 +48,15 @@ def main(app, id, title, dbauser, dbuser, dbname, dbserver, dbport):
 
     # Add Virtual Host Entry
     app.virtual_hosting.set_map('http://*.cnx.rice.edu/ /'+id+'\nhttp://localhost/ /'+id)
+
+    # Apply cnx.org styles
+    app.site.portal_setup.setImportContext(
+        'profile-Products.CNXPloneSite:default')
+    app.site.portal_setup.manage_importSelectedSteps(
+        ['cnx_install'],
+        True,  # run_dependencies
+        app.REQUEST.RESPONSE)
+
     transaction.commit()
 
 if __name__ == '__main__':
