@@ -72,21 +72,6 @@ if dictRequest is not None:
             ptool.setFile(collectionId, collectionVersion, 'complete.zip', bytesCompleteZip)
             transaction.commit()
 
-            tmpdir = tempfile.mkdtemp()
-            print "creating temp directory: " + str(tmpdir)
-            file = open("%s/%s" % (tmpdir,strCompleteZipFileName), 'w')
-            file.write(bytesCompleteZip)
-            file.close()
-            print "writing zip to temp directory: " + strCompleteZipFileName
-            epubdir = ptool.getEpubDir()
-
-            # launching bash script to build the epub file plus the offline zip
-            script_location = 'SCRIPTSDIR' in os.environ and os.environ['SCRIPTSDIR'] or '.'
-            rc = subprocess.call(['%s/content2epub.bash' % script_location, project_short_name, collectionId, collectionVersion, tmpdir, strCompleteZipFileName, strOfflineZipFileName, strEpubFileName, epubdir])
-
-        # we may have been gone a long time - update the current transaction
-        app._p_jar.sync()
-
         # store the collection offline zip in the PrintTool
         strFileName = "%s/%s/%s" % (tmpdir, strOfflineFileLocation,strOfflineZipFileName)
         if os.path.isfile(strFileName):
