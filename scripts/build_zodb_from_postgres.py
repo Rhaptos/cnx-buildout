@@ -57,7 +57,7 @@ if __name__ == '__main__':
     parser = OptionParser(usage=usage)
     parser.add_option('--no-fork', dest='to_fork',
                       action='store_false', default=True,
-                      help='Not fork the process (default true)')
+                      help='Not fork the process (default false)')
     options, args = parser.parse_args()
 
     if len(args) != 1:
