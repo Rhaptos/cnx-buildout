@@ -42,11 +42,30 @@ def main(root_url, fork=True):
     if len(db_conn) == 0:
         sys.stderr.write('No database connection object found')
         sys.exit(1)
+
     if fork:
         pid = os.fork()
         if pid:
-            # parent process
-            return
+            # Parent process exits.
+            sys.exit(0)
+
+        # Decouple from parent environment.
+        os.setsid()
+        os.umask(0)
+
+        # Do second fork.
+        pid = os.fork()
+        if pid:
+            # Second parent process exits.
+            sys.exit(0)
+
+        # Redirect standard file descriptors.
+        stdin = file('/dev/null', 'r')
+        stdout = file('/dev/null', 'a+')
+        stderr = file('/dev/null', 'a+', 0)
+        os.dup2(stdin.fileno(), sys.stdin.fileno())
+        os.dup2(stdout.fileno(), sys.stdout.fileno())
+        os.dup2(stderr.fileno(), sys.stderr.fileno())
 
     build_zodb(root_url, db_conn[0])
     transaction.commit()
