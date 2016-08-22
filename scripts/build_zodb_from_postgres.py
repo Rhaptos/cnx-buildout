@@ -37,16 +37,35 @@ def build_zodb(root_url, db_conn):
     cursor.close()
 
 
-def main(root_url, fork=True):
+def main(root_url, daemonize=False):
     db_conn = app.plone.objectValues('Z Psycopg 2 Database Connection')
     if len(db_conn) == 0:
         sys.stderr.write('No database connection object found')
         sys.exit(1)
-    if fork:
+
+    if daemonize:
         pid = os.fork()
         if pid:
-            # parent process
-            return
+            # Parent process exits.
+            sys.exit(0)
+
+        # Decouple from parent environment.
+        os.setsid()
+        os.umask(0)
+
+        # Do second fork.
+        pid = os.fork()
+        if pid:
+            # Second parent process exits.
+            sys.exit(0)
+
+        # Redirect standard file descriptors.
+        stdin = file('/dev/null', 'r')
+        stdout = file('/dev/null', 'a+')
+        stderr = file('/dev/null', 'a+', 0)
+        os.dup2(stdin.fileno(), sys.stdin.fileno())
+        os.dup2(stdout.fileno(), sys.stdout.fileno())
+        os.dup2(stderr.fileno(), sys.stderr.fileno())
 
     build_zodb(root_url, db_conn[0])
     transaction.commit()
@@ -55,9 +74,9 @@ def main(root_url, fork=True):
 if __name__ == '__main__':
     usage = 'Usage: %prog [options] root_url'
     parser = OptionParser(usage=usage)
-    parser.add_option('--no-fork', dest='to_fork',
-                      action='store_false', default=True,
-                      help='Not fork the process (default true)')
+    parser.add_option('-d', dest='daemonize',
+                      action='store_true', default=False,
+                      help='Run this script as a background job (daemonize)')
     options, args = parser.parse_args()
 
     if len(args) != 1:
@@ -65,4 +84,4 @@ if __name__ == '__main__':
         parser.print_help()
         sys.exit(1)
 
-    main(args[0], fork=options.to_fork)
+    main(args[0], daemonize=options.daemonize)
