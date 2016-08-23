@@ -26,7 +26,7 @@ COMPLETENAME=${FILESTORE}/${COLLECTION_ID}-${COLLECTION_VERSION}.complete.zip
 
 if [ -e $COMPLETENAME ]; then
     echo "Found complete zip in filestore"
-    unzip $COMPLETENAME
+    unzip -o $COMPLETENAME
 else
     echo "Downloading and unzipping the complete zip"
     wget --timeout=300 -O complete.zip ${HOST}/content/${COLLECTION_ID}/${COLLECTION_VERSION}/complete && unzip complete.zip 
@@ -51,7 +51,7 @@ else
   COMPLETENAME=${FILESTORE}/${COLLECTION_ID}-${COLLECTION_VERSION}.complete.zip
   if [ -e $COMPLETENAME ]; then
     echo "Found complete zip in filestore"
-    unzip $COMPLETENAME
+    unzip -o $COMPLETENAME
   else
     echo "Downloading and unzipping the complete zip"
     wget --timeout=300 -O complete.zip ${HOST}/content/${COLLECTION_ID}/${COLLECTION_VERSION}/complete && unzip complete.zip 
