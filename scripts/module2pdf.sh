@@ -27,7 +27,7 @@ if [ "." != ".${PRINT_STYLE}" ]; then
 else
 
   cp $MAKEFILE Makefile
-  make -e module.pdf > log.txt
+  HOME=$PWD make -e module.pdf > log.txt
   cat module.log >> log.txt
   cat module.mxt >> log.txt
   ls -al * >> log.txt
