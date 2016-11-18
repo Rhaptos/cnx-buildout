@@ -1,0 +1,82 @@
+import sys
+import shlex
+from Products.CMFCore.utils import getToolByName
+# addUserfromDB.zctl username password
+
+def add_a_user(username, password):
+
+    cur = db.getcursor()
+    cur.execute('select firstname, surname, email, fullname from persons where personid = %s', (username,))
+    res = cur.fetchone()
+    if res:
+        firstname, surname, email, fullname = res
+        
+        groups = ('Member','Publisher')
+        fullname = "%s %s" % (firstname,surname)
+        newprops = { 'firstname':firstname, 'surname':surname, 'email':email, 'fullname':fullname, 'status':'Approved' }
+
+        if username in member_ids:
+            # user exists so hammer password ...
+            user_folder.userSetPassword(username, password)
+        else:
+            # add a new Rhaptos user ...
+            mtool.addMember(username,password,groups,None)
+            print "Created %s" % username
+
+        # populate the required fields ...
+        memberdata = mtool.getMemberById(username)
+        portal.member_catalog.catalog_object(memberdata)
+        memberdata.setMemberProperties(newprops)
+
+        print "Updated properties for %s" % username
+    else:
+        print "No such user %s" % username
+
+portals = app.objectIds(['Plone Site','CMF Site'])
+
+if not portals:
+    print "No portal found!"
+    sys.exit(-1)
+else:
+    portalname = portals[0]
+
+# make a fake REQUEST
+from Testing.makerequest import makerequest
+app=makerequest(app)
+app.REQUEST.set('PARENTS',[app])
+app.REQUEST.traverse('/VirtualHostBase/http/localhost/%s/VirtualHostRoot/'% (portalname))
+
+portal = app[portalname]
+db = portal.rhaptosDA()
+mtool = getToolByName(portal, "portal_membership")
+mdtool = getToolByName(portal, 'portal_memberdata')
+user_folder = getToolByName(portal, 'acl_users')
+member_ids = mdtool.objectIds()
+
+print len(sys.argv)
+if len(sys.argv) == 2:
+    username   = sys.argv[1]
+    password   = sys.argv[1]
+
+    print 'got a user %s' % (username)
+    add_a_user(username, username)
+    
+    
+elif len(sys.argv) == 3:
+    username   = sys.argv[1]
+    password   = sys.argv[2]
+
+    print 'got a user %s' % (username)
+    add_a_user(username, password)
+
+else:    
+    for data in sys.stdin:
+        if data !='': 
+            (username,password) = shlex.split(data)
+            add_a_user(username, password)
+
+# make it so ...
+import transaction; transaction.commit()
+
+from Products.RhaptosSite.utils import kill_other_threads_and_exit
+kill_other_threads_and_exit()
