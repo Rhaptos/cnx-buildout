@@ -28,7 +28,7 @@ echo "deb http://us.archive.ubuntu.com/ubuntu/ hardy main" >/etc/apt/sources.lis
 apt-get update
 
 apt-get install postgresql postresql-contrib libpq-dev openjdk-7-jre-headless
-apt-get install python2.4-dev python-virtualenv make git libjpeg-dev libpng-dev build-essential
+apt-get install python2.4-dev python-virtualenv make git libjpeg-dev libpng-dev build-essential jpegoptim
 
 Modify postgresql config to allow trusted access on local domain sockets:
 
