@@ -34,7 +34,7 @@ fi
 mv ${COLLECTION_ID}_${COLLECTION_VERSION}_complete/* . && rm -rf ${COLLECTION_ID}_${COLLECTION_VERSION}_complete
 
 echo "Optimizing JPEGs - deleting excess tags"
-find . -type f -exec file {} \; | awk -F: '{if ($2 ~/JPEG/) print $1}'| while read f; do  jpegoptim --strip-all $f; done
+find . -type f -exec file {} \; | awk -F: '{if ($2 ~/JPEG/) print $1}'| while read f; do  jpegoptim --strip-all "$f"; done
 
 PRINT_STYLE=$(${XSLTPROC} ${PRINT_STYLE_XSL} collection.xml)
 
