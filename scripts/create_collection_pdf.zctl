@@ -54,6 +54,7 @@ if dictRequest is not None:
 
         env = os.environ
         # override the makefile default values via environment variables and '-e' switch
+        env['PYTHON'] = sys.executable
         env['PRINT_DIR'] = printdir
         env['HOST'] = host
         env['COLLECTION_ID'] = collectionId
