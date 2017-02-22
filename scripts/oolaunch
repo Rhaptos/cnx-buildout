@@ -3,4 +3,4 @@
 # sudo su www-data ./oolaunch
 # Going to default this to using unoconv
 
-python3 /usr/local/bin/unoconv -l &
+/usr/bin/unoconv -l &
