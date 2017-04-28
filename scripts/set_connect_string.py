@@ -33,18 +33,14 @@ def main(app, connection_string):
     _oldpolicy=setSecurityPolicy(_policy)
     newSecurityManager(None, EvenMoreOmnipotentUser().__of__(app.acl_users))
     app = makerequest(app)
-    da = app.devrep
-    retry = -1
-    while retry < 0:
-        try:
-            da.edit(da.title, connection_string, da.zdatetime, check=True,
-                    tilevel=da.tilevel, encoding=da.encoding, ustrings=da.ustrings)
-            break
-        except:
-            # First time failing. Trying to use old cnx_str
-            retry += 1
-            transaction.commit()
+    try:
+        da = app.devrep
+    except:  # If server is down, try again, only throws one error
+        da = app.devrep
+
+    da.connection_string = connection_string
     transaction.commit()
+    print "Connected %s to '%s'" % (da.connected(), da.connection_string)
 
 if __name__ == '__main__':
     if len(sys.argv) != 2:
