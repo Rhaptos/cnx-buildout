@@ -18,7 +18,7 @@
 
 XSLTPROC=xsltproc
 PRINT_STYLE_XSL=${EPUB_DIR}/xsl/collxml-print-style.xsl
-FILESTORE=/var/www/files
+FILESTORE=/var/www/files*
 
 
 
