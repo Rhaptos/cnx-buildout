@@ -22,14 +22,14 @@ FILESTORE=/var/www/files*
 
 
 
-COMPLETENAME=${FILESTORE}/${COLLECTION_ID}-${COLLECTION_VERSION}.complete.zip
+COMPLETENAME=$(ls -t ${FILESTORE}/${COLLECTION_ID}-${COLLECTION_VERSION}.complete.zip | head -1)
 
 if [ -e $COMPLETENAME ]; then
     echo "Found complete zip in filestore"
     unzip -o $COMPLETENAME
 else
     echo "Downloading and unzipping the complete zip"
-    wget --timeout=300 -O complete.zip ${HOST}/content/${COLLECTION_ID}/${COLLECTION_VERSION}/complete && unzip complete.zip 
+    wget --timeout=300 -O complete.zip ${HOST}/content/${COLLECTION_ID}/${COLLECTION_VERSION}/complete && unzip -o complete.zip
 fi
 mv ${COLLECTION_ID}_${COLLECTION_VERSION}_complete/* . && rm -rf ${COLLECTION_ID}_${COLLECTION_VERSION}_complete
 
@@ -48,13 +48,12 @@ if [ "." != ".${PRINT_STYLE}" ]; then
 else
   echo "Running old-style PDF generation using latex"
 
-  COMPLETENAME=${FILESTORE}/${COLLECTION_ID}-${COLLECTION_VERSION}.complete.zip
   if [ -e $COMPLETENAME ]; then
     echo "Found complete zip in filestore"
     unzip -o $COMPLETENAME
   else
     echo "Downloading and unzipping the complete zip"
-    wget --timeout=300 -O complete.zip ${HOST}/content/${COLLECTION_ID}/${COLLECTION_VERSION}/complete && unzip complete.zip 
+    wget --timeout=300 -O complete.zip ${HOST}/content/${COLLECTION_ID}/${COLLECTION_VERSION}/complete && unzip -o complete.zip
   fi
 
   mv ${COLLECTION_ID}_${COLLECTION_VERSION}_complete/* . && rm -rf ${COLLECTION_ID}_${COLLECTION_VERSION}_complete
