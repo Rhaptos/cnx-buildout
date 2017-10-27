@@ -107,7 +107,8 @@ if is_jython:
 else:
     assert os.spawnle(
         os.P_WAIT, sys.executable, quote (sys.executable),
-        '-c', quote (cmd), '-mqNxd', quote (tmpeggs), 'zc.buildout' + VERSION,
+        '-c', quote (cmd), '-mqNxd', quote (tmpeggs),
+        '-i', 'https://pypi.python.org/simple', 'zc.buildout' + VERSION,
         dict(os.environ,
             PYTHONPATH=
             ws.find(pkg_resources.Requirement.parse(requirement)).location
