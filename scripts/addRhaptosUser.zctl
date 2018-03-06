@@ -15,6 +15,10 @@ def add_a_user(type,username,password,firstname,surname,email):
         groups = ('Member','Manager','Publisher')
         fullname = "%s %s" % (firstname,surname)
         newprops = { 'firstname':firstname, 'surname':surname, 'email':email, 'fullname':fullname, 'status':'Approved' }
+    elif type == 'new':
+        groups = ('Member',)
+        fullname = "%s %s" % (firstname,surname)
+        newprops = { 'firstname':firstname, 'surname':surname, 'email':email, 'fullname':fullname, 'status':'Approved' }
     else:
         groups = ('Member','Publisher')
         fullname = "%s %s" % (firstname,surname)
