@@ -200,8 +200,7 @@ RUN set -x \
 # Build the application
 # ###
 
-RUN set -x \
-    && wget -O docker-versions.cfg https://raw.githubusercontent.com/Connexions/cnx-deploy/master/environments/__prod_envs/files/versions.cfg
+ADD https://raw.githubusercontent.com/Connexions/cnx-deploy/master/environments/__prod_envs/files/versions.cfg docker-versions.cfg
 
 RUN set -x \
     && . bin/activate \
