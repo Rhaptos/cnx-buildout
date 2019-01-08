@@ -1,0 +1,39 @@
+version: "3.6"
+services:
+
+  # ###
+  # Core Services offered in this repo
+  # ###
+
+  zeo:
+    build:
+      context: .
+      target: foundation
+
+  web:
+    build:
+      context: .
+      target: web
+
+  pdf-gen:
+    build:
+      context: .
+      target: pdf-gen
+
+  # ###
+  # Dependency Services
+  # ###
+
+  memcached:
+    image: memcached:1.5
+
+  db:
+    image: openstax/cnx-db:latest
+    ports:
+      # Exposes the port to a random external port number.
+      # Use `docker ps` to find the external port mapping.
+      - "5432"
+    # If you'd like to load the database with data, have a look at:
+    # https://github.com/Connexions/devops/wiki/How-To%3A-Get-a-Slim-Database-Dump
+    # But do keep in mind that it will be wiped away if you are
+    # also running the unit tests
