@@ -148,6 +148,10 @@ RUN set -x \
 # /END Install Python2.4
 # ###
 
+# ############################################################################
+# FOUNDATION
+# ############################################################################
+
 FROM python24 as foundation
 
 COPY --from=confd /go/bin/confd /usr/local/bin/confd
@@ -165,6 +169,7 @@ RUN set -x \
     && mkdir /app
 COPY . /app
 WORKDIR /app
+ADD https://raw.githubusercontent.com/Connexions/cnx-deploy/master/environments/__prod_envs/files/versions.cfg /app/docker-versions.cfg
 RUN set -x \
     && chown -R www-data:www-data .
 
@@ -200,18 +205,30 @@ RUN set -x \
 # Build the application
 # ###
 
-ADD https://raw.githubusercontent.com/Connexions/cnx-deploy/master/environments/__prod_envs/files/versions.cfg docker-versions.cfg
-
 RUN set -x \
     && . bin/activate \
     && bin/python2.4 bootstrap.py \
     && bin/buildout -c docker-buildout.cfg -vvvv
 # FIXME: buildout doesn't return a non-zero exit code... we must check the install
 
-# TODO: Install PDF-Gen dependencies
-# TODO: Install PrinceXML
-
 COPY .dockerfiles/docker-entrypoint.sh /usr/local/bin/
 # COPY .dockerfiles/etc/confd /etc/confd
 
 ENTRYPOINT ["docker-entrypoint.sh"]
+
+# ############################################################################
+# WEB
+# ############################################################################
+
+FROM foundation as web
+
+# TODO: install remaining web client dependencies
+
+# ############################################################################
+# PDF-GEN
+# ############################################################################
+
+FROM foundation as pdf-gen
+
+# TODO: install all the pdf-gen dependencies
+# TODO: install PrinceXML

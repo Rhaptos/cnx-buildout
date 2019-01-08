@@ -1,3 +1,16 @@
+Container usage is as follows:
+
+  docker-compose up -d
+
+Container release notes:
+
+  docker build --target foundation --tag openstax/legacy-cnx-foundation:latest .
+  docker build --target foundation --tag openstax/legacy-cnx-zeo:latest .
+  docker build --target web --tag openstax/legacy-cnx-web:latest .
+  docker build --target pdf-gen --tag openstax/legacy-cnx-pdf-gen:latest .
+
+------------------------------------------------------------------------------
+
 This overly complex buildout is being cleaned up a bit at a time, but
 will probably be end-of-lifed before it's sane. Basic install instructions are:
 
