@@ -216,6 +216,15 @@ COPY .dockerfiles/docker-entrypoint.sh /usr/local/bin/
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
+
+# ############################################################################
+# ZEO
+# ############################################################################
+
+FROM foundation as zeo
+# Nothing more to do...
+
+
 # ############################################################################
 # WEB
 # ############################################################################
@@ -223,6 +232,7 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 FROM foundation as web
 
 # TODO: install remaining web client dependencies
+
 
 # ############################################################################
 # PDF-GEN
