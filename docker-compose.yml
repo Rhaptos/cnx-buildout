@@ -9,16 +9,22 @@ services:
     build:
       context: .
       target: foundation
+    ports:
+      - "8100"
 
   web:
     build:
       context: .
       target: web
+    ports:
+      - "8080"
 
   pdf-gen:
     build:
       context: .
       target: pdf-gen
+    ports:
+      - "8080"
 
   # ###
   # Dependency Services
