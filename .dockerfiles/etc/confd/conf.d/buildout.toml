@@ -1,0 +1,6 @@
+[template]
+src = "buildout.cfg"
+dest = "/app/docker-buildout.cfg"
+uid = 33
+gid = 33
+mode = "0644"
