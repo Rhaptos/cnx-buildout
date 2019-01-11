@@ -11,6 +11,9 @@ services:
       target: zeo
     ports:
       - "8100"
+    command: bash -c "bin/zeoserver show all && bin/zeoserver fg"
+    volumes:
+      - .dockerfiles/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
 
   web:
     build:
@@ -18,6 +21,11 @@ services:
       target: web
     ports:
       - "8080"
+    command: bash -c "bin/client show all && bin/client fg"
+    environment:
+      - LEGACY_ZEO_HOST=zeo
+    volumes:
+      - .dockerfiles/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
 
   pdf-gen:
     build:
@@ -25,6 +33,11 @@ services:
       target: pdf-gen
     ports:
       - "8080"
+    command: bash -c "bin/pdf_gen show all && bin/pdf_gen fg"
+    environment:
+      - LEGACY_ZEO_HOST=zeo
+    volumes:
+      - .dockerfiles/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
 
   # ###
   # Dependency Services
