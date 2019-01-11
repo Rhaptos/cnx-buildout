@@ -166,25 +166,39 @@ RUN set -x \
     && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
 RUN set -x \
-    && mkdir /app
-COPY . /app
+    && mkdir -p /app/downloads /app/products /app/var \
+    && chown www-data:www-data /app
+
+# ###
+# Use a virtualenv
+# ###
+
+COPY downloads/virtualenv-1.7.2.tar.gz /tmp
+RUN set -x \
+    && cd /tmp \
+    && tar xzf /tmp/virtualenv-1.7.2.tar.gz
+
+USER www-data
+RUN python2.4 /tmp/virtualenv-1.7.2/virtualenv.py /app
+
+# ###
+# Pull in the application files
+# ###
+
+USER root
+RUN rm -rf /tmp/*
+COPY ["bootstrap.py", "rhaptos-versions.cfg", "docker-base.cfg", "docker-buildout.cfg", "libs.cfg", "/app/"]
+COPY scripts /app/scripts
+COPY ["downloads/Python-2.4.6.tgz", "downloads/jing-20081028.zip", "downloads/pip-1.1.tar.gz", "downloads/setuptools-1.4.2.tar.gz", "/app/downloads/"]
 WORKDIR /app
 ADD https://raw.githubusercontent.com/Connexions/cnx-deploy/master/environments/__prod_envs/files/versions.cfg /app/docker-versions.cfg
 RUN set -x \
     && chown -R www-data:www-data .
 
 # ###
-# Use a virtualenv
+# Continue setting up the application as the runtime user
 # ###
 
-RUN set -x \
-    && cd /tmp \
-    && tar xzf /app/downloads/virtualenv-1.7.2.tar.gz
-
-USER www-data
-RUN python2.4 /tmp/virtualenv-1.7.2/virtualenv.py /app
-USER root
-RUN rm -rf /tmp/*
 USER www-data
 
 RUN set -x \
@@ -200,7 +214,6 @@ RUN set -x \
       python-memcached==1.48 \
       hashlib==20081119
 
-
 # ###
 # Build the application
 # ###
@@ -212,7 +225,9 @@ RUN set -x \
 # FIXME: buildout doesn't return a non-zero exit code... we must check the install
 
 COPY .dockerfiles/docker-entrypoint.sh /usr/local/bin/
-# COPY .dockerfiles/etc/confd /etc/confd
+COPY .dockerfiles/etc/confd /etc/confd
+
+ENV LEGACY_ZEO_HOST=127.0.0.1
 
 ENTRYPOINT ["docker-entrypoint.sh"]
 
@@ -230,7 +245,6 @@ FROM foundation as zeo
 # ############################################################################
 
 FROM foundation as web
-
 # TODO: install remaining web client dependencies
 
 
