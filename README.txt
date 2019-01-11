@@ -2,12 +2,22 @@ Container usage is as follows:
 
   docker-compose up -d
 
+To create a site in the newly started site:
+
+  docker-compose exec web bin/client run scripts/create_rhaptos_site.py plone Portal postgres rhaptos rhaptos db 5432
+  docker-compose exec web /bin/bash -c "echo 'import transaction; app.plone.rhaptosDA.connection_string = \"postgres://rhaptos@db:5432/repository\"; transaction.commit()' | ./bin/client debug"
+
+The first line setups the site connected to a `rhaptos` database. The second line adjusts the database connection object to connect to the `repository` database. We do this because the script wants to create the database rather than use an existing one.
+
+
+
 Container release notes:
 
   docker build --target foundation --tag openstax/legacy-cnx-foundation:latest .
   docker build --target foundation --tag openstax/legacy-cnx-zeo:latest .
   docker build --target web --tag openstax/legacy-cnx-web:latest .
   docker build --target pdf-gen --tag openstax/legacy-cnx-pdf-gen:latest .
+
 
 ------------------------------------------------------------------------------
 
