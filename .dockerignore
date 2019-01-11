@@ -1,0 +1,16 @@
+*
+!.gitattributes
+!.gitignore
+!.dockerfiles
+!LICENSE.txt
+!README.txt
+!bootstrap.py
+!rhaptos-versions.cfg
+!docker-base.cfg
+!docker-buildout.cfg
+!libs.cfg
+!docker-compose.yml
+!downloads/
+!scripts/
+!var/
+!sources.cfg
