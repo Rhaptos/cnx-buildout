@@ -13,6 +13,7 @@ services:
       - "8100"
     command: bash -c "bin/zeoserver show all && bin/zeoserver fg"
     volumes:
+      - zodb-data:/app/var/filestorage/:rw
       - .dockerfiles/docker-entrypoint.sh:/usr/local/bin/docker-entrypoint.sh
 
   web:
@@ -58,7 +59,13 @@ services:
       # Exposes the port to a random external port number.
       # Use `docker ps` to find the external port mapping.
       - "5432"
+    volumes:
+      - pg-data:/var/lib/postgresql/data
     # If you'd like to load the database with data, have a look at:
     # https://github.com/Connexions/devops/wiki/How-To%3A-Get-a-Slim-Database-Dump
     # But do keep in mind that it will be wiped away if you are
     # also running the unit tests
+
+volumes:
+  pg-data:
+  zodb-data:
