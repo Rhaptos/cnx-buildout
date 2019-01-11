@@ -220,7 +220,7 @@ RUN set -x \
 
 RUN set -x \
     && . bin/activate \
-    && bin/python2.4 bootstrap.py \
+    && bin/python2.4 bootstrap.py -c docker-buildout.cfg \
     && bin/buildout -c docker-buildout.cfg -vvvv
 # FIXME: buildout doesn't return a non-zero exit code... we must check the install
 
