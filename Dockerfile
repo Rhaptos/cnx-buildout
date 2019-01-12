@@ -187,6 +187,99 @@ FROM foundation as web
 # ############################################################################
 
 FROM foundation as pdf-gen
+USER root
+# Install all the pdf-gen dependencies
+RUN set -x \
+    && mkdir -p /usr/share/man/man1 \
+    && mkdir -p /usr/share/man/man7 \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
+      python-imaging \
+      gif2png \
+      cjk-latex \
+      texlive-latex-extra \
+      xsltproc \
+      xvfb \
+      xfonts-base \
+      libreoffice \
+      imagemagick \
+      tralics \
+      unzip \
+      libxml2-utils \
+      texlive-latex3 \
+      libedit-dev \
+      zip \
+      libreoffice-script-provider-python \
+      ruby \
+      inkscape \
+      docbook-xsl-ns \
+      texlive-fonts-recommended \
+      memcached \
+      librsvg2-bin \
+      otf-stix \
+      # openjdk-8-jdk \
+      jpegoptim \
+      fontconfig \
+      fontconfig-config \
+      fonts-cabin \
+      fonts-comfortaa \
+      fonts-crosextra-caladea \
+      fonts-crosextra-carlito \
+      fonts-dejavu \
+      fonts-dejavu-core \
+      fonts-dejavu-extra \
+      fonts-ebgaramond \
+      fonts-ebgaramond-extra \
+      fonts-font-awesome \
+      fonts-freefont-otf \
+      fonts-freefont-ttf \
+      fonts-gfs-artemisia \
+      fonts-gfs-complutum \
+      fonts-gfs-didot \
+      fonts-gfs-neohellenic \
+      fonts-gfs-olga \
+      fonts-gfs-solomos \
+      fonts-inconsolata \
+      fonts-junicode \
+      fonts-lato \
+      fonts-liberation \
+      fonts-linuxlibertine \
+      fonts-lmodern \
+      fonts-lobster \
+      fonts-lobstertwo \
+      fonts-oflb-asana-math \
+      fonts-opensymbol \
+      # fonts-roboto-hinted \
+      fonts-sil-gentium \
+      fonts-sil-gentium-basic \
+      fonts-sil-gentiumplus \
+      fonts-stix \
+      fonts-texgyre \
+      gsfonts \
+      libfont-afm-perl \
+      libfontconfig1:amd64 \
+      libfontenc1:amd64 \
+      libxfont1:amd64 \
+      texlive-font-utils \
+      texlive-fonts-extra \
+      texlive-fonts-extra-doc \
+      texlive-fonts-recommended \
+      texlive-fonts-recommended-doc \
+      xfonts-base \
+      xfonts-encodings \
+      xfonts-utils \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Install PrinceXML
+ENV PRINCE_XML_DEB=prince_12.4-1_debian8.10_amd64.deb
+RUN set -x \
+    && wget -P /tmp/ https://www.princexml.com/download/${PRINCE_XML_DEB} \
+    && dpkg -i /tmp/${PRINCE_XML_DEB} \
+    && rm -rf /tmp/*
+USER www-data
 
-# TODO: install all the pdf-gen dependencies
-# TODO: install PrinceXML
+# TODO: Allow for PrinceXML license to be added at runtime
+# TODO: Install URW fonts
+# TODO: Install addtional fonts
+# TODO: Install DTD files
