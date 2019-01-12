@@ -277,9 +277,17 @@ RUN set -x \
     && wget -P /tmp/ https://www.princexml.com/download/${PRINCE_XML_DEB} \
     && dpkg -i /tmp/${PRINCE_XML_DEB} \
     && rm -rf /tmp/*
+# Install CNXML DTD files
+ENV CNXML_VERSION=2.2.0
+RUN set -x \
+    && mkdir -p /usr/share/xml/ \
+    && cd /tmp \
+    && wget -P /tmp/ https://github.com/openstax/cnxml/archive/v${CNXML_VERSION}.tar.gz \
+    && tar xzf /tmp/v${CNXML_VERSION}.tar.gz \
+    && cp -R /tmp/cnxml-${CNXML_VERSION}/cnxml/xml/* /usr/share/xml/ \
+    && rm -rf /tmp/*
 USER www-data
 
 # TODO: Allow for PrinceXML license to be added at runtime
 # TODO: Install URW fonts
 # TODO: Install addtional fonts
-# TODO: Install DTD files
