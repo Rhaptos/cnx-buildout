@@ -14,9 +14,13 @@ The first line setups the site connected to a `rhaptos` database. The second lin
 Container release notes:
 
   docker build --target foundation --tag openstax/legacy-cnx-foundation:latest .
-  docker build --target foundation --tag openstax/legacy-cnx-zeo:latest .
+  docker build --target zeo --tag openstax/legacy-cnx-zeo:latest .
   docker build --target web --tag openstax/legacy-cnx-web:latest .
   docker build --target pdf-gen --tag openstax/legacy-cnx-pdf-gen:latest .
+  docker push openstax/legacy-cnx-foundation:latest
+  docker push openstax/legacy-cnx-zeo:latest
+  docker push openstax/legacy-cnx-web:latest
+  docker push openstax/legacy-cnx-pdf-gen:latest
 
 
 ------------------------------------------------------------------------------
