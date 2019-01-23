@@ -172,6 +172,7 @@ ENTRYPOINT ["docker-entrypoint.sh"]
 
 FROM foundation as zeo
 # Nothing more to do...
+EXPOSE 8100
 
 
 # ############################################################################
@@ -180,7 +181,7 @@ FROM foundation as zeo
 
 FROM foundation as web
 # TODO: install remaining web client dependencies
-
+EXPOSE 8080
 
 # ############################################################################
 # PDF-GEN
@@ -287,6 +288,7 @@ RUN set -x \
     && cp -R /tmp/cnxml-${CNXML_VERSION}/cnxml/xml/* /usr/share/xml/ \
     && rm -rf /tmp/*
 USER www-data
+EXPOSE 8080
 
 # TODO: Allow for PrinceXML license to be added at runtime
 # TODO: Install URW fonts
