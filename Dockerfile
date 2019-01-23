@@ -103,6 +103,26 @@ RUN set -x \
     && mkdir -p /app/downloads /app/products /app/var \
     && chown www-data:www-data /app
 
+# Install CNXML DTD files
+RUN set -x \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y apt-transport-https \
+    && echo "deb [ trusted=yes ] https://packages.cnx.org/ deb/" > /etc/apt/sources.list.d/packages.cnx.org.list \
+    && apt-get update \
+    && apt-get install --no-install-recommends -y \
+      connexions-cnxml-0.8 \
+      connexions-cnxml-0.7 \
+      connexions-mdml-0.5 \
+      connexions-memcases-xml \
+      connexions-qml-1.0 \
+      connexions-bibtexml-1.0 \
+      connexions-mathml-2.0 \
+      connexions-mathml-3.0 \
+      connexions-collxml-1.0 \
+    && apt-get autoremove -y \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 # ###
 # Use a virtualenv
 # ###
@@ -278,15 +298,7 @@ RUN set -x \
     && wget -P /tmp/ https://www.princexml.com/download/${PRINCE_XML_DEB} \
     && dpkg -i /tmp/${PRINCE_XML_DEB} \
     && rm -rf /tmp/*
-# Install CNXML DTD files
-ENV CNXML_VERSION=2.2.0
-RUN set -x \
-    && mkdir -p /usr/share/xml/ \
-    && cd /tmp \
-    && wget -P /tmp/ https://github.com/openstax/cnxml/archive/v${CNXML_VERSION}.tar.gz \
-    && tar xzf /tmp/v${CNXML_VERSION}.tar.gz \
-    && cp -R /tmp/cnxml-${CNXML_VERSION}/cnxml/xml/* /usr/share/xml/ \
-    && rm -rf /tmp/*
+
 USER www-data
 EXPOSE 8080
 
