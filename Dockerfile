@@ -48,10 +48,10 @@ RUN set -x \
 # Install Python 2.4
 # ###
 
-COPY downloads/* /tmp/
 WORKDIR /tmp/
 
 RUN set -x \
+    && wget https://www.python.org/ftp/python/2.4.6/Python-2.4.6.tgz \
     && tar xzf /tmp/Python-2.4.6.tgz \
     && cd Python-2.4.6 \
     && sed -i -E 's%^(\s*lib_dirs = .*)$%\1 "/usr/lib/x86_64-linux-gnu",%g' setup.py \
@@ -59,22 +59,23 @@ RUN set -x \
     && make \
     && make install \
     && cd .. \
-    && rm -rf /tmp/Python-2.4.6.tgz
+    && rm -rf /tmp/*
 
 RUN set -x \
+    && wget https://files.pythonhosted.org/packages/61/3c/8d680267eda244ad6391fb8b211bd39d8b527f3b66207976ef9f2f106230/setuptools-1.4.2.tar.gz \
     && tar xzf /tmp/setuptools-1.4.2.tar.gz \
     && cd setuptools-1.4.2 \
     && python2.4 setup.py install \
     && cd .. \
-    && rm -rf /tmp/ez_setup.py setuptools*
-
+    && rm -rf /tmp/*
 
 RUN set -x \
+    && wget https://files.pythonhosted.org/packages/25/57/0d42cf5307d79913a082c5c4397d46f3793bc35e1138a694136d6e31be99/pip-1.1.tar.gz \
     && tar xzf /tmp/pip-1.1.tar.gz \
     && cd pip-1.1 \
     && python2.4 setup.py install \
     && cd .. \
-    && rm -rf /tmp/pip-1.1.tar.gz
+    && rm -rf /tmp/*
 
 # TODO: clean up /tmp
 
@@ -127,25 +128,26 @@ RUN set -x \
 # Use a virtualenv
 # ###
 
-COPY downloads/virtualenv-1.7.2.tar.gz /tmp
+USER www-data
 RUN set -x \
     && cd /tmp \
-    && tar xzf /tmp/virtualenv-1.7.2.tar.gz
-
-USER www-data
-RUN python2.4 /tmp/virtualenv-1.7.2/virtualenv.py /app
+    && wget https://files.pythonhosted.org/packages/16/86/7b88d35d0a353ec70e42aa37fd8b0bd1c643419c80f022ffaafa4d6449f0/virtualenv-1.7.2.tar.gz \
+    && tar xzf /tmp/virtualenv-1.7.2.tar.gz \
+    && python2.4 /tmp/virtualenv-1.7.2/virtualenv.py /app \
+    && rm -rf /tmp/*
 
 # ###
 # Pull in the application files
 # ###
 
 USER root
-RUN rm -rf /tmp/*
+WORKDIR /app
+
+RUN set -x \
+    && wget -O /app/downloads/jing-20081028.zip https://raw.githubusercontent.com/openstax/cnx-deploy/28bc2804652f2939f53c2a2c533c362d3bc9fbc0/files/src/cnx-buildout/downloads/jing-20081028.zip
+ADD https://raw.githubusercontent.com/Connexions/cnx-deploy/master/environments/__prod_envs/files/versions.cfg /app/docker-versions.cfg
 COPY ["bootstrap.py", "rhaptos-versions.cfg", "docker-base.cfg", "docker-buildout.cfg", "libs.cfg", "/app/"]
 COPY scripts /app/scripts
-COPY ["downloads/Python-2.4.6.tgz", "downloads/jing-20081028.zip", "downloads/pip-1.1.tar.gz", "downloads/setuptools-1.4.2.tar.gz", "/app/downloads/"]
-WORKDIR /app
-ADD https://raw.githubusercontent.com/Connexions/cnx-deploy/master/environments/__prod_envs/files/versions.cfg /app/docker-versions.cfg
 RUN set -x \
     && chown -R www-data:www-data .
 
