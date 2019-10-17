@@ -33,7 +33,7 @@ def main(app):
     app = makerequest(app)
 
     # Grab connection to db
-    db = app.devrep()
+    db = app.plone.objectValues('Z Psycopg 2 Database Connection')[0]()
 
     # Get all users who have extended roles
     updates = 0
