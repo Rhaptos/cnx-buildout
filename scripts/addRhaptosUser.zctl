@@ -58,6 +58,14 @@ mdtool = getToolByName(portal, 'portal_memberdata')
 user_folder = getToolByName(portal, 'acl_users')
 member_ids = mdtool.objectIds()
 
+# make all portal roles assignable
+from Products.PluggableAuthService.interfaces.plugins import IRoleAssignerPlugin
+role_assigner = app.plone.acl_users.plugins.listPlugins(IRoleAssignerPlugin)[0][1]
+assignable_roles = list(role_assigner.listRoleIds())
+for role in mtool.getPortalRoles():
+    if role not in assignable_roles:
+        role_assigner.addRole(role)
+
 if len(sys.argv) == 7:
     type       = sys.argv[1]
     username   = sys.argv[2]
