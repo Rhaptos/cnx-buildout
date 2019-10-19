@@ -9,10 +9,10 @@ from Products.CMFCore.utils import getToolByName
 def add_a_user(type,username,password,firstname,surname,email):
 
     if type == 'org':
-        groups = ('Member','Endorser','Publisher')
+        groups = ('Member','Endorser','Publisher', 'Maintainer')
         newprops = { 'fullname':firstname, 'shortname':surname, 'email':email, 'account_type':'org', 'status':'Approved' }
     elif type == 'manager':
-        groups = ('Member','Manager','Publisher')
+        groups = ('Member','Manager','Publisher', 'Maintainer')
         fullname = "%s %s" % (firstname,surname)
         newprops = { 'firstname':firstname, 'surname':surname, 'email':email, 'fullname':fullname, 'status':'Approved' }
     elif type == 'new':
@@ -20,7 +20,7 @@ def add_a_user(type,username,password,firstname,surname,email):
         fullname = "%s %s" % (firstname,surname)
         newprops = { 'firstname':firstname, 'surname':surname, 'email':email, 'fullname':fullname, 'status':'Approved' }
     else:
-        groups = ('Member','Publisher')
+        groups = ('Member','Publisher', 'Maintainer')
         fullname = "%s %s" % (firstname,surname)
         newprops = { 'firstname':firstname, 'surname':surname, 'email':email, 'fullname':fullname, 'status':'Approved' }
 
