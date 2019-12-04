@@ -56,8 +56,10 @@ args = args + ['bootstrap']
 to_reload = False
 try:
     import pkg_resources
-    if not hasattr(pkg_resources, '_distribute'):
-        to_reload = True
+    to_reload = True
+    if not USE_DISTRIBUTE:
+        import setuptools
+    elif not hasattr(pkg_resources, '_distribute'):
         raise ImportError
 except ImportError:
     ez = {}
