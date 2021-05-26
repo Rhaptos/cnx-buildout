@@ -44,7 +44,7 @@ if options.config_file is not None:
 if options.version is not None:
     VERSION = '==%s' % options.version
 else:
-    VERSION = '==1.4.3'
+    VERSION = '==1.4.4'
 
 args = args + ['bootstrap']
 
