@@ -79,7 +79,7 @@ else:
     assert os.spawnle(
         os.P_WAIT, sys.executable, quote (sys.executable),
         '-c', quote (cmd), '-mqNxd', quote (tmpeggs),
-        '-i', 'https://pypi.python.org/simple', 'zc.buildout' + VERSION,
+        '-f', './packages/zc.buildout-1.4.4.tar.gz', 'zc.buildout' + VERSION,
         dict(os.environ,
             PYTHONPATH=
             ws.find(pkg_resources.Requirement.parse(requirement)).location
