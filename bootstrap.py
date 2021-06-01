@@ -44,7 +44,7 @@ if options.config_file is not None:
 if options.version is not None:
     VERSION = '==%s' % options.version
 else:
-    VERSION = '==1.4.3'
+    VERSION = '==1.4.4'
 
 args = args + ['bootstrap']
 
@@ -79,7 +79,7 @@ else:
     assert os.spawnle(
         os.P_WAIT, sys.executable, quote (sys.executable),
         '-c', quote (cmd), '-mqNxd', quote (tmpeggs),
-        '-i', 'https://pypi.python.org/simple', 'zc.buildout' + VERSION,
+        '-f', './packages/zc.buildout-1.4.4.tar.gz', 'zc.buildout' + VERSION,
         dict(os.environ,
             PYTHONPATH=
             ws.find(pkg_resources.Requirement.parse(requirement)).location
